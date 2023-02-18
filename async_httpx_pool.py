@@ -5,13 +5,13 @@ import asyncio
 
 
 # Sometimes faulty: missing rows for dataframe, might the problem be the async?
-
+limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
+httpx_client = httpx.Client(limits=limits)
 
 async def fetch_data(block_height):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"https://osmosisarchive-lcd.quickapi.com/osmosis/gamm/v1beta1/pools/1?height={block_height}")
-            response.encoding = 'utf-8' # Optional: requests infers this internally
             response = response.json() # parse response into the dictionary
     except json.JSONDecodeError as e:
         # Catch the exception and print an error message
@@ -47,7 +47,7 @@ async def main():
     df_pool = pd.DataFrame()
     heightest_block = 8292971
     tasks = []
-    for block_height in range(8292940, heightest_block+1):
+    for block_height in range(8292950, heightest_block+1):
         tasks.append(asyncio.ensure_future(fetch_data(block_height)))
     df_list = await asyncio.gather(*tasks)
     for df in df_list:
