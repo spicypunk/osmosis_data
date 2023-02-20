@@ -65,7 +65,7 @@ async def main():
     df_pool = pd.DataFrame()
     heightest_block = 8292971
     block_size = 100
-    for block_start in range(8290000, 8292800, block_size):
+    for block_start in range(8290000, 8292800 + 1, block_size):
         block_end = min(block_start + block_size - 1, heightest_block)
         tasks = [asyncio.ensure_future(fetch_data(block_height)) for block_height in range(block_start, block_end+1)]
         df_list = await asyncio.gather(*tasks)
@@ -77,7 +77,6 @@ async def main():
             filename = os.path.join(path, f"{block_start}_{block_end}.csv")
             df_pool.to_csv(filename, index=False)
             print(f"Saved {filename}")
-            series_number += 1
             # clear the dataframe for the next block
             df_pool = pd.DataFrame()
 
