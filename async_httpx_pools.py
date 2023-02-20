@@ -2,11 +2,13 @@ import httpx
 import json
 import pandas as pd
 import asyncio
+import os
 
 
 # Sometimes faulty: missing rows for dataframe, might the problem be the async?
 limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
 httpx_client = httpx.Client(limits=limits)
+path = "/Users/bethie/osmosis-data/schema"
 
 async def fetch_data(block_height):
     tries = 0
@@ -62,14 +64,22 @@ def flatten_dict(d, parent_key='', sep='_'):
 async def main():
     df_pool = pd.DataFrame()
     heightest_block = 8292971
-    tasks = []
-    for block_height in range(8292800, heightest_block+1):
-        tasks.append(asyncio.ensure_future(fetch_data(block_height)))
-    df_list = await asyncio.gather(*tasks)
-    for df in df_list:
-        if df is not None:
-            df_pool = pd.concat([df_pool, df], axis=0)
-    print(df_pool)
+    block_size = 100
+    for block_start in range(8290000, 8292800, block_size):
+        block_end = min(block_start + block_size - 1, heightest_block)
+        tasks = [asyncio.ensure_future(fetch_data(block_height)) for block_height in range(block_start, block_end+1)]
+        df_list = await asyncio.gather(*tasks)
+        for df in df_list:
+            if df is not None:
+                df_pool = pd.concat([df_pool, df], axis=0)
+        if not df_pool.empty:
+            # save the dataframe to a CSV file
+            filename = os.path.join(path, f"{block_start}_{block_end}.csv")
+            df_pool.to_csv(filename, index=False)
+            print(f"Saved {filename}")
+            series_number += 1
+            # clear the dataframe for the next block
+            df_pool = pd.DataFrame()
 
 if __name__ == "__main__":
     asyncio.run(main())
