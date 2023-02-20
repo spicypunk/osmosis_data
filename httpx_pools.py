@@ -12,6 +12,7 @@ async def fetch_data(block_height):
     tries = 0
     while tries < 5:
         try:
+            await asyncio.sleep(2)
             async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.get(f"https://osmosisarchive-lcd.quickapi.com/osmosis/gamm/v1beta1/pools/1?height={block_height}")
                 if response.status_code == 200:
@@ -29,10 +30,11 @@ async def fetch_data(block_height):
                     header2 = header1
                     df_2 = pd.DataFrame(osmo_atom_pool_asset2, columns=header2, index=[0])
                     df = pd.concat([df_0, df_1, df_2], axis=1)
+                    await asyncio.sleep(2)
                     return df
                 elif response.status_code == 429:
-                    print(f"Too many requests at block height {block_height}. Retrying in 2 seconds.")
-                    await asyncio.sleep(2)
+                    # print(f"Too many requests at block height {block_height}. Retrying in 2 seconds.")
+                    await asyncio.sleep(10)
                 else:
                     print(f"HTTP error occurred at block height {block_height}: {response.status_code}")
                     tries += 1
@@ -61,7 +63,7 @@ async def main():
     df_pool = pd.DataFrame()
     heightest_block = 8292971
     tasks = []
-    for block_height in range(8292900, heightest_block+1):
+    for block_height in range(8292800, heightest_block+1):
         tasks.append(asyncio.ensure_future(fetch_data(block_height)))
     df_list = await asyncio.gather(*tasks)
     for df in df_list:
