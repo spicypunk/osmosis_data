@@ -1,1 +1,3 @@
 schema/*
+myenv/*
+__pycache__/
