@@ -13,6 +13,7 @@ async def run_subprocess(cmd):
     return stdout.decode().strip()
 
 # Define the function that performs the CLI interaction
+# /Users/bethie/go/bin/osmosisd query gamm pool 678 --height 6639544
 async def interact_with_cli(block_height):
     cmd = ["/Users/bethie/go/bin/osmosisd", "query", "gamm", "pools", "--height", str(block_height), "-o", "json"]
     output = await run_subprocess(cmd)

@@ -3,20 +3,26 @@ import json
 import pandas as pd
 import asyncio
 import os
+import time
+import aiometer
 
 
 # Sometimes faulty: missing rows for dataframe, might the problem be the async?
 limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
 httpx_client = httpx.Client(limits=limits)
 path = "/Users/bethie/osmosis-data/schema"
+MAX_CONCURRENT_TASKS = 10  # maximum number of concurrent tasks
+REQUESTS_PER_SECOND = 5  # maximum number of requests per second
+
 
 async def fetch_data(block_height):
     tries = 0
     while tries < 5:
         try:
-            await asyncio.sleep(2)
+            await asyncio.sleep(1/REQUESTS_PER_SECOND)
             async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.get(f"https://osmosisarchive-lcd.quickapi.com/osmosis/gamm/v1beta1/pools/1?height={block_height}")
+                print(f"start time: {time.time()}")
                 if response.status_code == 200:
                     response = response.json() # parse response into the dictionary
                     pool_assets = response["pool"]['pool_assets']
@@ -35,7 +41,7 @@ async def fetch_data(block_height):
                     await asyncio.sleep(2)
                     return df
                 elif response.status_code == 429:
-                    # print(f"Too many requests at block height {block_height}. Retrying in 2 seconds.")
+                    print(f"Too many requests at block height {block_height}. Retrying in 10 seconds.")
                     await asyncio.sleep(10)
                 else:
                     print(f"HTTP error occurred at block height {block_height}: {response.status_code}")
@@ -65,10 +71,16 @@ async def main():
     df_pool = pd.DataFrame()
     heightest_block = 8292971
     block_size = 100
-    for block_start in range(8290000, 8292800 + 1, block_size):
+    for block_start in range(8276500, 8290000, block_size):
         block_end = min(block_start + block_size - 1, heightest_block)
-        tasks = [asyncio.ensure_future(fetch_data(block_height)) for block_height in range(block_start, block_end+1)]
-        df_list = await asyncio.gather(*tasks)
+        # tasks = [asyncio.ensure_future(fetch_data(block_height)) for block_height in range(block_start, block_end+1)] # create a list of tasks
+        await asyncio.sleep(2)
+
+        block_list = [block_height for block_height in range(block_start, block_end+1)]
+        
+        df_list = await aiometer.run_on_each(fetch_data, block_list, max_at_once=10, max_per_second=5)
+
+        # df_list = await asyncio.gather(*tasks) # running 100 tasks at a time
         for df in df_list:
             if df is not None:
                 df_pool = pd.concat([df_pool, df], axis=0)

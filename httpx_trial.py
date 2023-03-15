@@ -1,3 +1,3 @@
 import httpx
-r = httpx.get('https://api.osmosis.zone/pools/v2/volume/678/chart')
+r = httpx.get('https://osmosisarchive-lcd.quickapi.com/osmosis/blocks')
 print(r.text)
