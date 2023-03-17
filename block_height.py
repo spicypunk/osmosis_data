@@ -11,15 +11,16 @@ import datetime
 def unix_to_timestamp(unix):
     str_num = str(unix)[:-3]
     timestamp = datetime.datetime.utcfromtimestamp(int(str_num))
-    print(type(timestamp))
     return timestamp
 
 def get_block_timestamp(height): 
     block = {}
     response = requests.get(f'https://osmosis-mainnet-rpc.allthatnode.com:1317/blocks/{height}').json() # find another link
     timestamp = response['block']['header']['time']
-    timestamp = timestamp.replace('Z', '')[0:19]
-    timestamp = datetime.datetime.strptime(timestamp,"%Y-%m-%dT%H:%M:%S")
+    timestamp = timestamp.replace('Z', '')[0:26]
+    # print(timestamp)
+    timestamp = datetime.datetime.strptime(timestamp,"%Y-%m-%dT%H:%M:%S.%f")
+    # print(timestamp)
     return timestamp
 
 
@@ -29,8 +30,8 @@ def estimate_block_height_by_timestamp(timestamp):
     block_request = requests.get('https://osmosis-lcd.quickapi.com/cosmos/base/tendermint/v1beta1/blocks/latest').json()
     blockNumber = int(block_request['block']['header']['height'])
     blockTime = block_request['block']['header']['time']
-    blockTime = blockTime.replace('Z', '')[0:19]
-    blockTime = datetime.datetime.strptime(blockTime,"%Y-%m-%dT%H:%M:%S")
+    blockTime = blockTime.replace('Z', '')[0:26]
+    blockTime = datetime.datetime.strptime(blockTime,"%Y-%m-%dT%H:%M:%S.%f")
     
     
     lowerLimitStamp = target_timestamp - datetime.timedelta(seconds=6)
@@ -74,7 +75,7 @@ def estimate_block_height_by_timestamp(timestamp):
 
 
 def main():
-    date_object = unix_to_timestamp(1666951200000) # datetime.datetime.strptime("2022-10-28 10:00:00",'%Y-%m-%d %H:%M:%S') # 
+    date_object = datetime.datetime.strptime("2023-03-17 20:43:09.799262",'%Y-%m-%d %H:%M:%S.%f')  # unix_to_timestamp(1666951200000)
     blockNumber, blockTime = estimate_block_height_by_timestamp(date_object)
     print('Block Number: ' + str(blockNumber))
     print('Block Time: ' + str(blockTime))
