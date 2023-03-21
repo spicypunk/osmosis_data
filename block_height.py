@@ -1,6 +1,8 @@
 import requests
 import datetime
 
+# This is a function that get the lastest block number before a given timestamp
+
 # class HeightFinder:
 #     def __init__(self):
 #         self = self
@@ -34,8 +36,8 @@ def estimate_block_height_by_timestamp(timestamp):
     blockTime = datetime.datetime.strptime(blockTime,"%Y-%m-%dT%H:%M:%S.%f")
     
     
-    lowerLimitStamp = target_timestamp - datetime.timedelta(seconds=6)
-    higherLimitStamp = target_timestamp
+    lowerLimitStamp = target_timestamp - datetime.timedelta(seconds=8)
+    higherLimitStamp = target_timestamp + datetime.timedelta(seconds=8)
     
     requestsMade = 1
 
@@ -75,7 +77,7 @@ def estimate_block_height_by_timestamp(timestamp):
 
 
 def main():
-    date_object = datetime.datetime.strptime("2023-03-17 20:43:09.799262",'%Y-%m-%d %H:%M:%S.%f')  # unix_to_timestamp(1666951200000)
+    date_object = datetime.datetime.strptime("2023-03-17 21:28:23.209057",'%Y-%m-%d %H:%M:%S.%f')  # unix_to_timestamp(1666951200000)
     blockNumber, blockTime = estimate_block_height_by_timestamp(date_object)
     print('Block Number: ' + str(blockNumber))
     print('Block Time: ' + str(blockTime))
