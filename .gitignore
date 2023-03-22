@@ -1,4 +1,4 @@
 schema/*
 myenv/*
-__pycache__/
+__pycache__/*
 block_8751002.ipynb
