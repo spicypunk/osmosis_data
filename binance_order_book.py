@@ -4,6 +4,7 @@ import datetime
 import time
 import pytz
 
+### Rationale: Python
 # keep getting orderbook from binance, 
 def get_binance_book(book_list):
     rest_url = f"https://data.binance.com/api/v3/depth"
